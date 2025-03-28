@@ -21,19 +21,20 @@ from ..core.managers import edit_or_reply
 from ..helpers.functions import zedalive, check_data_base_heal_th, get_readable_time
 from ..helpers.utils import reply_id
 from ..sql_helper.globals import gvarstatus
+from . import mention
 
 plugin_category = "العروض"
 STATS = gvarstatus("Z_STATS") or "فحص"
 
 
 @zedub.zed_cmd(pattern=f"{STATS}$")
-async def zed_alive(event):
+async def amireallyalive(event):
     reply_to_id = await reply_id(event)
     uptime = await get_readable_time((time.time() - StartTime))
     boot_time_timestamp = psutil.boot_time()
     bt = datetime.fromtimestamp(boot_time_timestamp)
     start = datetime.now()
-    zedevent = await edit_or_reply(event, "**✦ جـاري فحـص تنصيبـك لـ 𝗧𝗘𝗣𝗧𝗛𝗢𝗡 ⌬ . .**")
+    zedevent = await edit_or_reply(event, "**يتِم فحـص تنصيبـك لـ  𝖳𝖾𝗉𝗍h᥆ᥒ 𔘓  . .**")
     end = datetime.now()
     ms = (end - start).microseconds / 1000
     _, check_sgnirts = check_data_base_heal_th()
@@ -43,23 +44,18 @@ async def zed_alive(event):
         zedda = f"{zzd}┊{zzt}"
     else:
         zedda = f"{bt.year}/{bt.month}/{bt.day}"
-    Z_EMOJI = gvarstatus("ALIVE_EMOJI") or "✥┊"
-    ALIVE_TEXT = gvarstatus("ALIVE_TEXT") or "**مرحبًــا 👋، بوت 𝗧𝗘𝗣𝗧𝗛𝗢𝗡 يعمـل بنجــاح .. ✅**"
+    Z_EMOJI = gvarstatus("ALIVE_EMOJI") or "✾╿"
+    ALIVE_TEXT = gvarstatus("ALIVE_TEXT") or "**- بوت تيبثـون 𝖳𝖤𝖯𝖳𝖧𝖮𝖭 يعمـل بنجـاح 🌿 ..**"
     ZED_IMG = gvarstatus("ALIVE_PIC")
-    USERID = zedub.uid if Config.OWNER_ID == 0 else Config.OWNER_ID
-    ALIVE_NAME = gvarstatus("ALIVE_NAME") if gvarstatus("ALIVE_NAME") else "-"
-    mention = f"[{ALIVE_NAME}](tg://user?id={USERID})"
     zed_caption = gvarstatus("ALIVE_TEMPLATE") or zed_temp
     caption = zed_caption.format(
         ALIVE_TEXT=ALIVE_TEXT,
         Z_EMOJI=Z_EMOJI,
         mention=mention,
         uptime=uptime,
-        zedda=zzd,
-        zzd=zzd,
-        zzt=zzt,
+        zedda=zedda,
         telever=version.__version__,
-        tepver=tepversion,
+        zdver=tepversion,
         pyver=python_version(),
         dbhealth=check_sgnirts,
         ping=ms,
@@ -86,13 +82,42 @@ async def zed_alive(event):
 
 zed_temp = """{ALIVE_TEXT}
 
-**{Z_EMOJI} قاعدة البيانات :** تعمـل بـ نجـاح ♾
-**{Z_EMOJI} إصـدار المكتبـة :** `{telever}`
-**{Z_EMOJI} إصـدار السـورس :** `{tepver}`
-**{Z_EMOJI} إصـدار بايثـون :** `{pyver}`
-**{Z_EMOJI} منصـة التنصيب :** `𝐫𝐞𝐧𝐝𝐞𝐫`
-**{Z_EMOJI} وقت التشغيل :** `{uptime}`
-**{Z_EMOJI} تاريـخ التنصيب :** `{zzd}`
-**{Z_EMOJI} وقت التنصيب :** `{zzt}`
-**{Z_EMOJI} المسـتخـدم:** {mention}
-**{Z_EMOJI} قنـاة السـورس :** [اضغـط هنـا](https://t.me/Tepthon)"""
+**{Z_EMOJI} قاعـدة البيانـات : ** سريعـة للغايـة 🚀 
+**{Z_EMOJI} إصــدار المكتبــة :** `{telever}`
+**{Z_EMOJI} إصــدار الـسـورس : ** `{zdver}`
+**{Z_EMOJI} إصــدار بايـثون : ** `{pyver}`
+**{Z_EMOJI} وَقـت التشغِيـل : ** `{uptime}`
+**{Z_EMOJI} منــصـة التنصِيب :** `𝐡𝐞𝐫𝐨𝐤𝐮`
+**{Z_EMOJI} تاريــخ التنصيـب : ** `{zedda}`
+**{Z_EMOJI} المالـك : ** {mention}
+**{Z_EMOJI} قنـاتنا :** [اضغـط هنـا](https://t.me/Tepthon)"""
+
+
+@zedub.zed_cmd(
+    pattern="الفحص$",
+    command=("الفحص", plugin_category),
+    info={
+        "header": "- لـ التحـقق من ان البـوت يعمـل بنجـاح .. بخـاصيـة الانـلايـن ✓",
+        "الاسـتخـدام": [
+            "{tr}الفحص",
+        ],
+    },
+)
+async def amireallyialive(event):
+    "A kind of showing bot details by your inline bot"
+    reply_to_id = await reply_id(event)
+    Z_EMOJI = gvarstatus("ALIVE_EMOJI") or "✾╿"
+    zed_caption = "**- بوت تيبثـون 𝖳𝖤𝖯𝖳𝖧𝖮𝖭 يعمـل بنجـاح 🌿 .. **\n"
+    zed_caption += f"**{Z_EMOJI} إصـــدار تليثـون : ** `{version.__version__}\n`"
+    zed_caption += f"**{Z_EMOJI} إصــدار تيبثــون : ** `{tepversion}`\n"
+    zed_caption += f"**{Z_EMOJI} إصــدار بايـثـون : ** `{python_version()}\n`"
+    zed_caption += f"**{Z_EMOJI} المالـك : ** {mention}\n"
+    results = await event.client.inline_query(Config.TG_BOT_USERNAME, zed_caption)
+    await results[0].click(event.chat_id, reply_to=reply_to_id, hide_via=True)
+    await event.delete()
+
+
+@zedub.tgbot.on(CallbackQuery(data=re.compile(b"stats")))
+async def on_plug_in_callback_query_handler(event):
+    statstext = await zedalive(StartTime)
+    await event.answer(statstext, cache_time=0, alert=True)
