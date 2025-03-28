@@ -310,10 +310,9 @@ async def variable(event):
         variable = "MAX_FLOOD_IN_PMS"
         await asyncio.sleep(1.5)
         if vinfo.isdigit():
-            await zed.edit("**⎉╎تم تغييـر {} بنجـاح ☑️**\n**⎉╎المتغيـر : ↶**\n `{}` \n**⎉╎يتم الآن إعــادة تشغيـل بـوت تيبثـون يستغـرق الأمر 2-1 دقيقـة ⏰ ▬▭ ...**".format(input_str, vinfo))
+            await zed.edit("**⎉╎تم تغييـر {} .. بنجـاح ☑️**\n**⎉╎عـدد تحذيـرات حماية الخاص الان : ↶**\n `{}`".format(input_str, vinfo))
         else:
             return await zed.edit("**⎉╎خطـأ .. قم بالـرد ع رقـم فقـط ؟!**")
-        addgvar("MAX_FLOOD_IN_PMS", vinfo)
 
     elif input_str == "كود تيرمكس" or input_str == "كود السيشن" or input_str == "كود سيشن":
         if Config.HEROKU_API_KEY is None:
