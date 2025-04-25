@@ -1,10 +1,11 @@
 import asyncio
 from Tepthon import zedub
 from telethon import events, TelegramClient
+from telethon.tl.types import InputMediaUploadedPhoto
 from telethon.tl.custom import Button
 from ..Config import Config
 
-plugin_category = "البـوتات"
+plugin_category = "بوتات"
 
 async def interact_with_botfather(client, command, wait_for=None):
     async with client.conversation('BotFather') as conv:
@@ -14,12 +15,12 @@ async def interact_with_botfather(client, command, wait_for=None):
             return response.text
         return None
 
-@zedub.on(events.NewMessage(pattern=r'\.صـنع بـوت (.*)'))
+@zedub.on(events.NewMessage(pattern=r'\.صنع بوت (.*)'))
 async def create_bot(event):
     try:
         input_str = event.pattern_match.group(1)
         if ' ' not in input_str:
-            await event.respond("⎉╎يـجب كتـابة اسـم البـوت ويـوزره مـع المسـافة بيـنهم!\nمثـال: `.صـنع بـوت MyBot mybot`")
+            await event.respond("⎉╎ يجب كتابة اسم البوت ويوزره مع المسافة بينهم!\nمثال: `.صنع بوت MyBot mybot`")
             return
             
         name, username = input_str.split(' ', 1)
@@ -27,7 +28,7 @@ async def create_bot(event):
             username = f"@{username}"
         
         async with TelegramClient('bot_session', Config.APP_ID, Config.API_HASH) as client:
-            # إنـشـاء الـبـوت
+            # إنشاء البوت
             result = await interact_with_botfather(
                 client,
                 f"/newbot\n{name}\n{username}",
@@ -35,7 +36,7 @@ async def create_bot(event):
             )
             
             if "Done!" in result or "تم!" in result:
-                # الحـصـول عـلى الـتـوكـن
+                # الحصول على التوكن
                 await asyncio.sleep(2)
                 token_msg = await interact_with_botfather(
                     client,
@@ -46,47 +47,47 @@ async def create_bot(event):
                 if "Use this token" in token_msg or "استخدم هذا الرمز" in token_msg:
                     token = token_msg.split('\n')[-1]
                     await event.respond(
-                        f"⎉╎✅ تـم إنـشـاء الـبـوت بـنـجـاح!\n\n"
-                        f"⎉╎الـيـوزر: {username}\n"
-                        f"⎉╎الـتـوكـن: `{token}`\n\n"
-                        f"⎉╎يـمـكـنـك الـتـحـكـم فـيه بـاسـتـخـدام الأمـر:\n`.تـحـكـم {username}`",
+                        f"⎉╎✅ تم إنشاء البوت بنجاح!\n\n"
+                        f"⎉╎اليوزر: {username}\n"
+                        f"⎉╎التوكن: `{token}`\n\n"
+                        f"⎉╎يمكنك التحكم فيه باستخدام الأمر:\n`.تحكم {username}`",
                         parse_mode='md'
                     )
                 else:
-                    await event.respond(f"⎉╎✅ تـم إنـشـاء الـبـوت: {username} ولـكـن لـم يـتـم الـحـصـول عـلى الـتـوكـن.")
+                    await event.respond(f"⎉╎✅ تم إنشاء البوت: {username} ولكن لم يتم الحصول على التوكن.")
             else:
-                await event.respond(f"⎉╎❌ فـشـل فـي إنـشـاء الـبـوت. قـد يـكـون الـيـوزر مـحـجـوزاً.\n\nالـرد مـن بـوت فـاذر:\n{result}")
+                await event.respond(f"⎉╎❌ فشل في إنشاء البوت. قد يكون اليوزر محجوزاً.\n\nالرد من بوت فاذر:\n{result}")
                 
     except Exception as e:
-        await event.respond(f"⎉╎❌ حـدث خـطـأ: {str(e)}")
+        await event.respond(f"⎉╎❌ حدث خطأ: {str(e)}")
 
-@zedub.on(events.NewMessage(pattern=r'\.تـحـكـم (.*)'))
+@zedub.on(events.NewMessage(pattern=r'\.تحكم (.*)'))
 async def manage_bot(event):
     username = event.pattern_match.group(1)
     if not username.startswith('@'):
         username = f"@{username}"
     
     buttons = [
-        [Button.inline("تـغـيـيـر اسـم الـبـوت", b"change_name")],
-        [Button.inline("تـغـيـيـر وصـف الـبـوت", b"change_desc")],
-        [Button.inline("تـغـيـيـر صـورة الـبـوت", b"change_pic")],
-        [Button.inline("حـذف الـبـوت", b"delete_bot")],
-        [Button.inline("الـحـصـول عـلى الـتـوكـن", b"get_token")],
+        [Button.inline("تغييـر اسم البوت", b"change_name")],
+        [Button.inline("تغييـر وصف البوت", b"change_desc")],
+        [Button.inline("تغييـر صورة البوت", b"change_pic")],
+        [Button.inline("حـذف البوت", b"delete_bot")],
+        [Button.inline("الحصـول على التوكن", b"get_token")],
     ]
     
     await event.respond(
-        f"⎉╎اخـتـر مـا تـريـد فـعـلـه مـع الـبـوت {username}:",
+        f"⎉╎اختر ما تريد فعله مع البوت {username}:",
         buttons=buttons
     )
 
 @zedub.on(events.CallbackQuery(data=b"change_name"))
 async def change_name_handler(event):
     async with event.client.conversation(event.sender_id) as conv:
-        await conv.send_message("⎉╎ارسـل لـي الاسـم الـجـديـد لـلـبـوت:")
+        await conv.send_message("⎉╎أرسل لي الاسم الجديد للبوت:")
         name_response = await conv.get_response()
         new_name = name_response.text
         
-        # الـحـصـول عـلى يـوزر الـبـوت مـن الـرسـالـة الأصـلـيـة
+        # الحصول على يوزر البوت من الرسالة الأصلية
         original_msg = await event.get_message()
         username = original_msg.text.split()[-1]
         
@@ -98,14 +99,14 @@ async def change_name_handler(event):
             )
             
             if "Done!" in result or "تم!" in result:
-                await event.respond(f"⎉╎✅ تـم تـغـيـيـر اسـم الـبـوت {username} إلـى: {new_name}")
+                await event.respond(f"⎉╎✅ تم تغيير اسم البوت {username} إلى: {new_name}")
             else:
-                await event.respond(f"⎉╎❌ فـشـل فـي تـغـيـيـر الاسـم. الـرد مـن بـوت فـاذر:\n{result}")
+                await event.respond(f"⎉╎❌ فشل في تغيير الاسم. الرد من بوت فاذر:\n{result}")
 
 @zedub.on(events.CallbackQuery(data=b"change_desc"))
 async def change_desc_handler(event):
     async with event.client.conversation(event.sender_id) as conv:
-        await conv.send_message("⎉╎ارسـل لـي الـوصـف الـجـديـد لـلـبـوت:")
+        await conv.send_message("⎉╎أرسل لي الوصف الجديد للبوت:")
         desc_response = await conv.get_response()
         new_desc = desc_response.text
         
@@ -120,14 +121,14 @@ async def change_desc_handler(event):
             )
             
             if "Done!" in result or "تم!" in result:
-                await event.respond(f"⎉╎✅ تـم تـغـيـيـر وصـف الـبـوت {username}")
+                await event.respond(f"⎉╎✅ تم تغيير وصف البوت {username}")
             else:
-                await event.respond(f"⎉╎❌ فـشـل فـي تـغـيـيـر الـوصـف. الـرد مـن بـوت فـاذر:\n{result}")
+                await event.respond(f"⎉╎❌ فشل في تغيير الوصف. الرد من بوت فاذر:\n{result}")
 
 @zedub.on(events.CallbackQuery(data=b"change_pic"))
 async def change_pic_handler(event):
     async with event.client.conversation(event.sender_id) as conv:
-        await conv.send_message("⎉╎ارسـل لـي الـصـورة الـجـديـدة لـلـبـوت:")
+        await conv.send_message("⎉╎أرسل لي الصورة الجديدة للبوت:")
         pic_response = await conv.get_response()
         
         original_msg = await event.get_message()
@@ -141,9 +142,9 @@ async def change_pic_handler(event):
                     file=pic_response.media
                 )
                 await asyncio.sleep(3)
-                await event.respond(f"⎉╎✅ تـم تـغـيـيـر صـورة الـبـوت {username}")
+                await event.respond(f"⎉╎✅ تم تغيير صورة البوت {username}")
         else:
-            await event.respond("⎉╎❌ لـم يـتـم إرسـال صـورة!")
+            await event.respond("⎉╎❌ لم يتم إرسال صورة!")
 
 @zedub.on(events.CallbackQuery(data=b"delete_bot"))
 async def delete_bot_handler(event):
@@ -151,12 +152,12 @@ async def delete_bot_handler(event):
     username = original_msg.text.split()[-1]
     
     confirm_buttons = [
-        [Button.inline("✅ نـعـم، احـذف الـبـوت", b"confirm_delete")],
-        [Button.inline("❌ إلـغـاء", b"cancel_delete")]
+        [Button.inline("✅ نعم، احذف البوت", b"confirm_delete")],
+        [Button.inline("❌ إلغاء", b"cancel_delete")]
     ]
     
     await event.respond(
-        f"⎉╎هـل أنـت مـتـأكـد مـن حـذف الـبـوت {username}؟ لا يـمـكـن الـتـراجـع عـن هـذا الإجـراء!",
+        f"⎉╎هل أنت متأكد من حذف البوت {username}؟ لا يمكن التراجع عن هذا الإجراء!",
         buttons=confirm_buttons
     )
 
@@ -173,31 +174,15 @@ async def confirm_delete_handler(event):
         )
         
         if "Done!" in result or "تم!" in result:
-            await event.respond(f"⎉╎✅ تـم حـذف الـبـوت {username} بـنـجـاح")
+            await event.respond(f"⎉╎✅ تم حذف البوت {username} بنجاح")
         else:
-            await event.respond(f"⎉╎❌ فـشـل فـي حـذف الـبـوت. الـرد مـن بـوت فـاذر:\n{result}")
+            await event.respond(f"⎉╎❌ فشل في حذف البوت. الرد من بوت فاذر:\n{result}")
 
 @zedub.on(events.CallbackQuery(data=b"cancel_delete"))
 async def cancel_delete_handler(event):
-    await event.respond("⎉╎تـم إلـغـاء عـمـلـيـة الـحـذف")
+    await event.respond("⎉╎تم إلغاء عملية الحذف")
 
 @zedub.on(events.CallbackQuery(data=b"get_token"))
 async def get_token_handler(event):
     original_msg = await event.get_message()
-    username = original_msg.text.split()[-1]
-    
-    async with TelegramClient('bot_session', Config.APP_ID, Config.API_HASH) as client:
-        token_msg = await interact_with_botfather(
-            client,
-            f"/token {username}",
-            wait_for=True
-        )
-        
-        if "Use this token" in token_msg or "استخدم هذا الرمز" in token_msg:
-            token = token_msg.split('\n')[-1]
-            await event.respond(
-                f"⎉╎✅ تـوكـن الـبـوت {username}:\n\n`{token}`",
-                parse_mode='md'
-            )
-        else:
-            await event.respond(f"⎉╎❌ لـم يـتـم الـعـثـور عـلى تـوكـن. الـرد مـن بـوت فـاذر:\n{token_msg}")
+    username = original_msg.text
