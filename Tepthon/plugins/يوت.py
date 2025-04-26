@@ -59,7 +59,7 @@ video_opts = {
     "prefer_ffmpeg": True,
     "geo_bypass": True,
     "nocheckcertificate": True,
-    "cookiefile": "rcookies/cozc.txt",  # إضافة ملف الكوكيز هنا
+    "url": "http://145.223.80.56:5001/get?q=",  # استخدام عنوان الويب هنا
     "postprocessors": [
         {"key": "FFmpegVideoConvertor", "preferedformat": "mp4"},
         {"key": "FFmpegMetadata"},
@@ -68,7 +68,6 @@ video_opts = {
     "logtostderr": False,
     "quiet": True,
 }
-
 
 async def ytdl_down(event, opts, url):
     ytdl_data = None
