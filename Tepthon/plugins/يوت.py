@@ -169,6 +169,37 @@ async def ytdl_down(event, opts, url):
     except Exception as e:
         await event.edit(f"**- خطـأ : **\n__{e}__")
     return ytdl_data
+                    
+    except DownloadError as DE:
+        await event.edit(f"`{DE}`")
+    except ContentTooShortError:
+        await event.edit("**- عذرا هذا المحتوى قصير جدا لتنزيله ⚠️**")
+    except GeoRestrictedError:
+        await event.edit(
+            "**- الفيديو غير متاح من موقعك الجغرافي بسبب القيود الجغرافية التي يفرضها موقع الويب ❕**"
+        )
+    except MaxDownloadsReached:
+        await event.edit("**- تم الوصول إلى الحد الأقصى لعدد التنزيلات ❕**")
+    except PostProcessingError:
+        await event.edit("**كان هناك خطأ أثناء المعالجة**")
+    except UnavailableVideoError:
+        # محاولة الرفع إلى catbox إذا فشل التحميل
+        try:
+            await event.edit("**╮ ❐ المحتوى غير متاح، جرب رفعه إلى catbox ...𓅫╰▬▭ **")
+            catbox_url = await upload_to_catbox(opts['outtmpl'])
+            if catbox_url:
+                await event.edit(f"**╮ ❐ تم رفع الفيديو إلى catbox: {catbox_url} ...𓅫╰▬▭ **")
+                return {'title': os.path.basename(opts['outtmpl']), 'url': catbox_url}
+        except Exception as e:
+            await event.edit(f"**- فشل رفع الفيديو إلى catbox: {str(e)}**")
+        await event.edit("**⌔∮عـذراً .. الوسائط غير متوفـره بالتنسيق المطلـوب**")
+    except XAttrMetadataError as XAME:
+        await event.edit(f"`{XAME.code}: {XAME.msg}\n{XAME.reason}`")
+    except ExtractorError:
+        await event.edit("**حدث خطأ أثناء استخراج المعلومات يرجى وضعها بشكل صحيح ⚠️**")
+    except Exception as e:
+        await event.edit(f"**- خطـأ : **\n__{e}__")
+    return ytdl_data
 
 # ... [بقية الدوال الموجودة في الملف الأصلي تبقى كما هي] ...
 
