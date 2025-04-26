@@ -1,4 +1,7 @@
 Telethon
+gunicorn
+flask
+flask_restful
 telethon-session-sqlalchemy
 setuptools
 wheel
