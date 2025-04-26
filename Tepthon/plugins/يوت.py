@@ -64,7 +64,7 @@ video_opts = {
         {"key": "FFmpegVideoConvertor", "preferedformat": "mp4"},
         {"key": "FFmpegMetadata"},
     ],
-    "outtmpl": "/root/zelz/downloads/cat_ytv.mp4",  # مسار حفظ الفيديو
+    "outtmpl": "/root/Tepthon/downloads/cat_ytv.mp4",  # مسار حفظ الفيديو
     "logtostderr": False,
     "quiet": True,
 }
