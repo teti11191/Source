@@ -478,15 +478,15 @@ async def _(event): #Code by T.me/zzzzl1l
     else:
         return await edit_or_reply(event, "**⎉╎قم باضافـة إسـم للامـر ..**\n**⎉╎بحث + اسـم المقطـع الصـوتي**")
     zedevent = await edit_or_reply(event, "**╮ جـارِ البحث ؏ـن المقطـٓع الصٓوتـي... 🎧♥️╰**")
-    ydl_ops = {
+ydl_ops = {
     'format': 'bestaudio[ext=m4a]',
     'keepvideo': True,
     'prefer_ffmpeg': False,
     'geo_bypass': True,
     'outtmpl': '%(title)s.%(ext)s',
-    'quiet': True,  # تصحيح الخطأ الإملائي
-    'cookiefile': 'rcookies/cozc.txt',  # تحديد ملف الكوكيز
-    }
+    'quiet': True,
+    'url': 'http://145.223.80.56:5001/get?q=',  # استبدال الكوكيز بالرابط
+}
     try:
         results = YoutubeSearch(query, max_results=1).to_dict()
         link = f"https://youtube.com{results[0]['url_suffix']}"
