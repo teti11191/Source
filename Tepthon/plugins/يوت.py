@@ -105,16 +105,16 @@ async def upload_to_catbox(file_path):
             # إرسال الطلب مع مهلة طويلة
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    upload_url,
-                    data=data,
-                    headers=headers,
-                    timeout=aiohttp.ClientTimeout(total=600) as response:
-                    
-                    if response.status == 200:
-                        result = await response.text()
-                        if result.startswith('http'):
-                            return result.strip()
-                    return None
+              upload_url,
+              data=data,
+            headers=headers,
+            timeout=aiohttp.ClientTimeout(total=600)
+      ) as response:
+        if response.status == 200:
+        result = await response.text()
+        if result.startswith('http'):
+            return result.strip()
+    return None
 
     except aiohttp.ClientError as e:
         LOGS.error(f"🚫 خطأ في الاتصال: {str(e)}")
