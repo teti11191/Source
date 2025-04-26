@@ -1,3 +1,7 @@
+import aiohttp
+from aiohttp import FormData, ClientTimeout
+import os
+import logging
 import asyncio
 import glob
 import io
@@ -74,46 +78,52 @@ video_opts = {
 
 # دالة catbox-uploader
 async def upload_to_catbox(file_path):
-    """رفع الملفات إلى catbox.moe"""
-    if not os.path.exists(file_path):
-        LOGS.error(f"File not found: {file_path}")
-        return None
-
+    """دالة محسنة لرفع الملفات إلى Catbox"""
     try:
+        if not os.path.exists(file_path):
+            LOGS.error(f"❌ الملف غير موجود: {file_path}")
+            return None
+
+        # إعدادات الرفع
+        upload_url = "https://catbox.moe/user/api.php"
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        
+        # إعداد البيانات مع التعامل الصحيح مع الملف
         data = aiohttp.FormData()
         data.add_field('reqtype', 'fileupload')
         data.add_field('userhash', '')
         
-        with open(file_path, 'rb') as f:
+        with open(file_path, 'rb') as file:
             data.add_field(
                 'fileToUpload',
-                f,
+                file,
                 filename=os.path.basename(file_path),
-                content_type='application/octet-stream'
+                content_type='video/mp4' if file_path.endswith('.mp4') else 'application/octet-stream'
             )
-            
+
+            # إرسال الطلب مع مهلة طويلة
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    'https://catbox.moe/user/api.php',
+                    upload_url,
                     data=data,
-                    headers={'User-Agent': 'Mozilla/5.0'},
-                    timeout=aiohttp.ClientTimeout(total=60)
-                ) as response:
-                    if response.status == 200:
-                        url = await response.text()
-                        if url.startswith('http'):
-                            return url.strip()
-                    return None
+                    headers=headers,
+                    timeout=aiohttp.ClientTimeout(total=600) as response:
                     
+                    if response.status == 200:
+                        result = await response.text()
+                        if result.startswith('http'):
+                            return result.strip()
+                    return None
+
     except aiohttp.ClientError as e:
-        LOGS.error(f"Network error uploading to catbox: {str(e)}")
+        LOGS.error(f"🚫 خطأ في الاتصال: {str(e)}")
     except IOError as e:
-        LOGS.error(f"File error uploading to catbox: {str(e)}")
+        LOGS.error(f"📁 خطأ في الملف: {str(e)}")
     except Exception as e:
-        LOGS.error(f"Unexpected error uploading to catbox: {str(e)}")
+        LOGS.error(f"⚠️ خطأ غير متوقع: {str(e)}")
     
-    return None
-    
+    return None 
+
 async def ytdl_down(event, opts, url):
     ytdl_data = None
     try:
