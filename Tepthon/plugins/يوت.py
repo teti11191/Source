@@ -77,10 +77,16 @@ async def upload_to_catbox(file_path):
     try:
         with open(file_path, 'rb') as f:
             async with aiohttp.ClientSession() as session:
-                async with session.post('https://catbox.moe/user/api.php', 
-                                      data={'reqtype': 'fileupload', 'userhash': ''},
-                                      headers={'User-Agent': 'Mozilla/5.0'},
-                                      data={'fileToUpload': f}) as response:
+                data = aiohttp.FormData()
+                data.add_field('reqtype', 'fileupload')
+                data.add_field('userhash', '')
+                data.add_field('fileToUpload', f, filename=os.path.basename(file_path))
+                
+                async with session.post(
+                    'https://catbox.moe/user/api.php',
+                    data=data,
+                    headers={'User-Agent': 'Mozilla/5.0'}
+                ) as response:
                     if response.status == 200:
                         return await response.text()
                     return None
