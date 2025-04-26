@@ -74,31 +74,45 @@ video_opts = {
 
 # دالة catbox-uploader
 async def upload_to_catbox(file_path):
+    """رفع الملفات إلى catbox.moe"""
+    if not os.path.exists(file_path):
+        LOGS.error(f"File not found: {file_path}")
+        return None
+
     try:
-        async with aiohttp.ClientSession() as session:
-            data = aiohttp.FormData()
-            data.add_field('reqtype', 'fileupload')
-            data.add_field('userhash', '')
+        data = aiohttp.FormData()
+        data.add_field('reqtype', 'fileupload')
+        data.add_field('userhash', '')
+        
+        with open(file_path, 'rb') as f:
+            data.add_field(
+                'fileToUpload',
+                f,
+                filename=os.path.basename(file_path),
+                content_type='application/octet-stream'
+            )
             
-            with open(file_path, 'rb') as f:
-                data.add_field(
-                    'fileToUpload',
-                    f,
-                    filename=os.path.basename(file_path),
-                    content_type='application/octet-stream'
-                )
-                
+            async with aiohttp.ClientSession() as session:
                 async with session.post(
                     'https://catbox.moe/user/api.php',
                     data=data,
-                    headers={'User-Agent': 'Mozilla/5.0'}
+                    headers={'User-Agent': 'Mozilla/5.0'},
+                    timeout=aiohttp.ClientTimeout(total=60)
                 ) as response:
                     if response.status == 200:
-                        return await response.text()
+                        url = await response.text()
+                        if url.startswith('http'):
+                            return url.strip()
                     return None
+                    
+    except aiohttp.ClientError as e:
+        LOGS.error(f"Network error uploading to catbox: {str(e)}")
+    except IOError as e:
+        LOGS.error(f"File error uploading to catbox: {str(e)}")
     except Exception as e:
-        LOGS.error(f"Error uploading to catbox: {str(e)}")
-        return None 
+        LOGS.error(f"Unexpected error uploading to catbox: {str(e)}")
+    
+    return None
     
 async def ytdl_down(event, opts, url):
     ytdl_data = None
