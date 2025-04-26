@@ -59,15 +59,16 @@ video_opts = {
     "prefer_ffmpeg": True,
     "geo_bypass": True,
     "nocheckcertificate": True,
-    "url": "http://145.223.80.56:5001/get?q=",  # استخدام عنوان الويب هنا
+    "cookiefile": "rcookies/cozc.txt",  # إضافة ملف الكوكيز هنا
     "postprocessors": [
         {"key": "FFmpegVideoConvertor", "preferedformat": "mp4"},
         {"key": "FFmpegMetadata"},
     ],
-    "outtmpl": "/root/Tepthon/downloads/cat_ytv.mp4",  # مسار حفظ الفيديو
+    "outtmpl": "/root/zelz/downloads/cat_ytv.mp4",  # مسار حفظ الفيديو
     "logtostderr": False,
     "quiet": True,
 }
+
 
 async def ytdl_down(event, opts, url):
     ytdl_data = None
@@ -478,15 +479,15 @@ async def _(event): #Code by T.me/zzzzl1l
     else:
         return await edit_or_reply(event, "**⎉╎قم باضافـة إسـم للامـر ..**\n**⎉╎بحث + اسـم المقطـع الصـوتي**")
     zedevent = await edit_or_reply(event, "**╮ جـارِ البحث ؏ـن المقطـٓع الصٓوتـي... 🎧♥️╰**")
-ydl_ops = {
+    ydl_ops = {
     'format': 'bestaudio[ext=m4a]',
     'keepvideo': True,
     'prefer_ffmpeg': False,
     'geo_bypass': True,
     'outtmpl': '%(title)s.%(ext)s',
-    'quiet': True,
-    'url': 'http://145.223.80.56:5001/get?q=',  # استبدال الكوكيز بالرابط
-}
+    'quiet': True,  # تصحيح الخطأ الإملائي
+    'cookiefile': 'rcookies/cozc.txt',  # تحديد ملف الكوكيز
+    }
     try:
         results = YoutubeSearch(query, max_results=1).to_dict()
         link = f"https://youtube.com{results[0]['url_suffix']}"
