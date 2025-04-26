@@ -15,6 +15,7 @@ from yt_dlp import YoutubeDL
 from youtube_search import YoutubeSearch
 
 from urlextract import URLExtract
+from catbox_uploader import upload_to_catbox
 from wget import download
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import (
