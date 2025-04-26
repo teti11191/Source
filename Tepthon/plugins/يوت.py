@@ -46,8 +46,9 @@ from ..core.managers import edit_delete, edit_or_reply
 from ..helpers import progress, reply_id
 from ..helpers.functions import delete_conv
 from ..helpers.functions.utube import _mp3Dl, get_yt_video_id, get_ytthumb, ytsearch
+from Tepthon import zedub
 from ..helpers.utils import _format
-from . import BOTLOG, BOTLOG_CHATID, zedub
+from . import BOTLOG, BOTLOG_CHATID
 
 BASE_YT_URL = "https://www.youtube.com/watch?v="
 extractor = URLExtract()
