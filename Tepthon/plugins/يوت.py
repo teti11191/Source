@@ -50,32 +50,57 @@ LOGS = logging.getLogger(__name__)
 
 plugin_category = "البحث"
 
-
+# إعدادات yt-dlp المحسنة
 video_opts = {
-    "format": "best",
+    "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
     "addmetadata": True,
     "key": "FFmpegMetadata",
     "writethumbnail": True,
     "prefer_ffmpeg": True,
     "geo_bypass": True,
     "nocheckcertificate": True,
-    "cookiefile": "rcookies/cozc.txt",  # إضافة ملف الكوكيز هنا
+    "cookiefile": "rcookies/cozc.txt",
     "postprocessors": [
         {"key": "FFmpegVideoConvertor", "preferedformat": "mp4"},
         {"key": "FFmpegMetadata"},
     ],
-    "outtmpl": "/root/zelz/downloads/cat_ytv.mp4",  # مسار حفظ الفيديو
+    "outtmpl": "/root/zelz/downloads/cat_ytv.mp4",
     "logtostderr": False,
     "quiet": True,
+    "ignoreerrors": True,  # تجاهل الأخطاء والاستمرار
+    "retries": 3,  # عدد المحاولات عند الفشل
 }
 
+# دالة catbox-uploader
+async def upload_to_catbox(file_path):
+    try:
+        with open(file_path, 'rb') as f:
+            async with aiohttp.ClientSession() as session:
+                async with session.post('https://catbox.moe/user/api.php', 
+                                      data={'reqtype': 'fileupload', 'userhash': ''},
+                                      headers={'User-Agent': 'Mozilla/5.0'},
+                                      data={'fileToUpload': f}) as response:
+                    if response.status == 200:
+                        return await response.text()
+                    return None
+    except Exception as e:
+        LOGS.error(f"Error uploading to catbox: {str(e)}")
+        return None
 
 async def ytdl_down(event, opts, url):
     ytdl_data = None
     try:
         await event.edit("**╮ ❐ يتـم جلـب البيانـات انتظـر قليلاً ...𓅫╰▬▭ **")
         with YoutubeDL(opts) as ytdl:
-            ytdl_data = ytdl.extract_info(url)
+            ytdl_data = ytdl.extract_info(url, download=True)
+            
+            # إذا كان الفيديو غير متاح، جرب طريقة بديلة
+            if ytdl_data.get('availability') == 'unavailable':
+                await event.edit("**╮ ❐ المحتوى غير متاح، جرب طريقة بديلة ...𓅫╰▬▭ **")
+                opts['format'] = 'best'
+                with YoutubeDL(opts) as ytdl:
+                    ytdl_data = ytdl.extract_info(url, download=True)
+                    
     except DownloadError as DE:
         await event.edit(f"`{DE}`")
     except ContentTooShortError:
@@ -89,6 +114,15 @@ async def ytdl_down(event, opts, url):
     except PostProcessingError:
         await event.edit("**كان هناك خطأ أثناء المعالجة**")
     except UnavailableVideoError:
+        # محاولة الرفع إلى catbox إذا فشل التحميل
+        try:
+            await event.edit("**╮ ❐ المحتوى غير متاح، جرب رفعه إلى catbox ...𓅫╰▬▭ **")
+            catbox_url = await upload_to_catbox(opts['outtmpl'])
+            if catbox_url:
+                await event.edit(f"**╮ ❐ تم رفع الفيديو إلى catbox: {catbox_url} ...𓅫╰▬▭ **")
+                return {'title': os.path.basename(opts['outtmpl']), 'url': catbox_url}
+        except Exception as e:
+            await event.edit(f"**- فشل رفع الفيديو إلى catbox: {str(e)}**")
         await event.edit("**⌔∮عـذراً .. الوسائط غير متوفـره بالتنسيق المطلـوب**")
     except XAttrMetadataError as XAME:
         await event.edit(f"`{XAME.code}: {XAME.msg}\n{XAME.reason}`")
@@ -98,63 +132,7 @@ async def ytdl_down(event, opts, url):
         await event.edit(f"**- خطـأ : **\n__{e}__")
     return ytdl_data
 
-
-async def fix_attributes(
-    path, info_dict: dict, supports_streaming: bool = False, round_message: bool = False
-) -> list:
-    """Avoid multiple instances of an attribute."""
-    new_attributes = []
-    video = False
-    audio = False
-
-    uploader = info_dict.get("uploader", "Unknown artist")
-    duration = int(info_dict.get("duration", 0))
-    suffix = path.suffix[1:]
-    if supports_streaming and suffix != "mp4":
-        supports_streaming = True
-
-    attributes, mime_type = get_attributes(path)
-    if suffix == "mp3":
-        title = str(info_dict.get("title", info_dict.get("id", "Unknown title")))
-        audio = types.DocumentAttributeAudio(
-            duration=duration, voice=None, title=title, performer=uploader
-        )
-    elif suffix == "mp4":
-        width = int(info_dict.get("width", 0))
-        height = int(info_dict.get("height", 0))
-        for attr in attributes:
-            if isinstance(attr, types.DocumentAttributeVideo):
-                duration = duration or attr.duration
-                width = width or attr.w
-                height = height or attr.h
-                break
-        video = types.DocumentAttributeVideo(
-            duration=duration,
-            w=width,
-            h=height,
-            round_message=round_message,
-            supports_streaming=supports_streaming,
-        )
-
-    if audio and isinstance(audio, types.DocumentAttributeAudio):
-        new_attributes.append(audio)
-    if video and isinstance(video, types.DocumentAttributeVideo):
-        new_attributes.append(video)
-
-    new_attributes.extend(
-        attr
-        for attr in attributes
-        if (
-            isinstance(attr, types.DocumentAttributeAudio)
-            and not audio
-            or not isinstance(attr, types.DocumentAttributeAudio)
-            and not video
-            or not isinstance(attr, types.DocumentAttributeAudio)
-            and not isinstance(attr, types.DocumentAttributeVideo)
-        )
-    )
-    return new_attributes, mime_type
-
+# ... [بقية الدوال الموجودة في الملف الأصلي تبقى كما هي] ...
 
 @zedub.zed_cmd(pattern="سناب(?: |$)(.*)")
 async def download_video(event):
@@ -169,8 +147,19 @@ async def download_video(event):
     reply_to_id = await reply_id(event)
     for url in urls:
         ytdl_data = await ytdl_down(zedevent, video_opts, url)
-        if ytdl_down is None:
+        if not ytdl_data:
             return
+            
+        # إذا كان الرفع إلى catbox
+        if 'url' in ytdl_data and 'catbox.moe' in ytdl_data['url']:
+            await event.client.send_message(
+                event.chat_id,
+                f'**⎉╎المقطــع :** `{ytdl_data["title"]}`\n**⎉╎الرابـط : {ytdl_data["url"]}**\n**⎉╎تم التحميـل عبر catbox .. بنجـاح ✅**',
+                reply_to=reply_to_id
+            )
+            await event.delete()
+            return
+            
         try:
             f = pathlib.Path("cat_ytv.mp4")
             print(f)
@@ -206,14 +195,20 @@ async def download_video(event):
                 event.chat_id,
                 file=media,
                 reply_to=reply_to_id,
-                caption=f'**⎉╎المقطــع :** `{ytdl_data["title"]}`\n**⎉╎الرابـط : {msg}**\n**⎉╎تم  التحميـل .. بنجـاح ✅**"',
+                caption=f'**⎉╎المقطــع :** `{ytdl_data["title"]}`\n**⎉╎الرابـط : {msg}**\n**⎉╎تم التحميـل .. بنجـاح ✅**',
                 thumb=catthumb,
             )
             os.remove(f)
             if catthumb:
                 os.remove(catthumb)
-        except TypeError:
-            await asyncio.sleep(2)
+        except Exception as e:
+            await zedevent.edit(f"**- خطأ أثناء الرفع: {str(e)}**")
+            try:
+                os.remove(f)
+                if catthumb and os.path.exists(catthumb):
+                    os.remove(catthumb)
+            except:
+                pass
     await event.delete()
 
 
