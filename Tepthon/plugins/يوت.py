@@ -75,12 +75,18 @@ video_opts = {
 # دالة catbox-uploader
 async def upload_to_catbox(file_path):
     try:
-        with open(file_path, 'rb') as f:
-            async with aiohttp.ClientSession() as session:
-                data = aiohttp.FormData()
-                data.add_field('reqtype', 'fileupload')
-                data.add_field('userhash', '')
-                data.add_field('fileToUpload', f, filename=os.path.basename(file_path))
+        async with aiohttp.ClientSession() as session:
+            data = aiohttp.FormData()
+            data.add_field('reqtype', 'fileupload')
+            data.add_field('userhash', '')
+            
+            with open(file_path, 'rb') as f:
+                data.add_field(
+                    'fileToUpload',
+                    f,
+                    filename=os.path.basename(file_path),
+                    content_type='application/octet-stream'
+                )
                 
                 async with session.post(
                     'https://catbox.moe/user/api.php',
@@ -92,8 +98,8 @@ async def upload_to_catbox(file_path):
                     return None
     except Exception as e:
         LOGS.error(f"Error uploading to catbox: {str(e)}")
-        return None
-
+        return None 
+    
 async def ytdl_down(event, opts, url):
     ytdl_data = None
     try:
