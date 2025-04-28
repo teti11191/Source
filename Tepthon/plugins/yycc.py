@@ -491,6 +491,9 @@ def remove_if_exists(path): #Code by T.me/zzzzl1l
 #Code by T.me/zzzzl1l
 @zedub.zed_cmd(pattern="بحث(?: |$)(.*)")
 async def _(event):
+    from pytube import YouTube
+    from pytube.exceptions import VideoUnavailable, AgeRestrictedError
+    
     reply = await event.get_reply_message()
     if event.pattern_match.group(1):
         query = event.pattern_match.group(1)
@@ -500,115 +503,68 @@ async def _(event):
         return await edit_or_reply(event, "**⎉╎قم باضافـة إسـم للامـر ..**\n**⎉╎بحث + اسـم المقطـع الصـوتي**")
     
     zedevent = await edit_or_reply(event, "**╮ جـارِ البحث ؏ـن المقطـٓع الصٓوتـي... 🎧♥️╰**")
-    
-    # إعدادات متقدمة مع عدة طبقات حماية
-    ydl_ops = {
-        "format": "bestaudio/best",
-        "quiet": True,
-        "no_warnings": True,
-        "geo_bypass": True,
-        "geo_bypass_country": "US",
-        "outtmpl": "%(title)s.%(ext)s",
-        "noplaylist": True,
-        "extract_flat": True,
-        "socket_timeout": 30,
-        "retries": 10,
-        "fragment_retries": 10,
-        "extractor_args": {
-            "youtube": {
-                "skip": ["dash", "hls"],
-                "player_client": ["android", "web"]
-            }
-        },
-        "http_headers": {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Referer": "https://www.youtube.com/",
-        },
-        "compat_opts": {
-            "no-youtube-unavailable-videos": True
-        }
-    }
 
     try:
-        # البحث باستخدام طريقة بديلة إذا فشلت الطريقة الأساسية
-        try:
-            results = YoutubeSearch(query, max_results=1).to_dict()
-            if not results:
-                return await zedevent.edit(SONG_NOT_FOUND)
-                
-            link = f"https://youtube.com{results[0]['url_suffix']}"
-            title = results[0]["title"][:40]
-        except:
-            # طريقة احتياطية للبحث
-            results = await yt_search(query, 1)
-            if not results:
-                return await zedevent.edit(SONG_NOT_FOUND)
-            link = results[0]["url"]
-            title = results[0]["title"][:40]
-
-        thumbnail = f"https://i.ytimg.com/vi/{link.split('v=')[1].split('&')[0]}/hqdefault.jpg"
-        thumb_name = f"{title}.jpg"
+        # البحث عن الفيديو
+        results = YoutubeSearch(query, max_results=1).to_dict()
+        if not results:
+            return await zedevent.edit(SONG_NOT_FOUND)
+            
+        video_url = f"https://youtube.com{results[0]['url_suffix']}"
+        title = results[0]["title"][:40]
+        thumbnail = results[0]["thumbnails"][0]
         
+        # تحميل الصورة المصغرة
+        thumb_name = f"{title}.jpg"
         try:
             thumb = requests.get(thumbnail, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
-            thumb.raise_for_status()
             with open(thumb_name, "wb") as f:
                 f.write(thumb.content)
         except:
             thumb_name = None
 
-    except Exception as e:
-        return await zedevent.edit(f"**• فشـل في البحث** \n`{str(e)}`")
-
-    await zedevent.edit("**╮ جـارِ التحميل ▬▭ . . .🎧♥️╰**")
-    
-    # دالة مساعدة للتحميل مع إعادة المحاولة
-    async def download_audio():
-        for i in range(3):  # 3 محاولات
-            try:
-                with yt_dlp.YoutubeDL(ydl_ops) as ydl:
-                    info_dict = await asyncio.to_thread(ydl.extract_info, link, download=True)
-                    return ydl.prepare_filename(info_dict)
-            except Exception as e:
-                if i == 2:  # إذا كانت آخر محاولة
-                    raise e
-                await asyncio.sleep(2)  # انتظار 2 ثانية قبل إعادة المحاولة
-
-    try:
-        audio_file = await download_audio()
+        await zedevent.edit("**╮ جـارِ التحميل ▬▭ . . .🎧♥️╰**")
+        
+        # استخدام pytube للتحميل
+        yt = YouTube(video_url)
+        audio_stream = yt.streams.filter(only_audio=True, file_extension='mp4').first()
+        
+        if not audio_stream:
+            return await zedevent.edit("**⎉╎لم يتم العثور على تنسيق صوتي متاح**")
+        
+        # مسار لحفظ الملف
+        download_path = f"{title}.mp3"
+        audio_stream.download(filename=download_path)
         
         await zedevent.edit("**╮ جـارِ الرفـع ▬▬ . . .🎧♥️╰**")
         
-        # إرسال الملف مع التحقق من حجمه
-        file_size = os.path.getsize(audio_file)
-        if file_size > 209715200:  # 200MB حد التلجرام
-            await zedevent.edit("**- الملف كبير جدًا ويتجاوز حد التلجرام (200MB)**")
-        else:
-            await event.client.send_file(
-                event.chat_id,
-                audio_file,
-                caption=f"**⎉ البحث ⥃** `{title}`",
-                thumb=thumb_name,
-                supports_streaming=True,
-                progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
-                    progress(d, t, zedevent, time(), "Uploading...")
-            )
+        # إرسال الملف
+        await event.client.send_file(
+            event.chat_id,
+            download_path,
+            caption=f"**⎉ البحث ⥃** `{title}`",
+            thumb=thumb_name,
+            supports_streaming=True,
+            attributes=[
+                types.DocumentAttributeAudio(
+                    duration=yt.length,
+                    title=title,
+                    performer=yt.author
+                )
+            ]
+        )
         
+    except VideoUnavailable:
+        await zedevent.edit("**⎉╎الفيديو غير متاح أو محذوف**")
+    except AgeRestrictedError:
+        await zedevent.edit("**⎉╎الفيديو مقيد بالعمر**")
     except Exception as e:
-        error_msg = str(e)
-        if "HTTP Error 403" in error_msg:
-            await zedevent.edit("**- تم حظر السيرفر من يوتيوب، جرب لاحقًا أو من سيرفر آخر**")
-        elif "Unsupported URL" in error_msg:
-            await zedevent.edit("**- الرابط غير مدعوم أو غير متاح**")
-        else:
-            await zedevent.edit(f"**• فشـل التحميـل** \n`{error_msg}`")
+        await zedevent.edit(f"**⎉╎حدث خطأ:** `{str(e)}`")
     finally:
-        # التنظيف النهائي
+        # تنظيف الملفات المؤقتة
         try:
-            if 'audio_file' in locals() and os.path.exists(audio_file):
-                os.remove(audio_file)
+            if 'download_path' in locals() and os.path.exists(download_path):
+                os.remove(download_path)
             if thumb_name and os.path.exists(thumb_name):
                 os.remove(thumb_name)
         except:
