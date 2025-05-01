@@ -2,17 +2,14 @@ import asyncio
 import os
 import logging
 from pathlib import Path
-import time
-from datetime import datetime
 
-from telethon import events, functions, types
-from telethon.utils import get_peer_id
+from telethon import functions
 from telethon.tl.types import InputPeerChannel, InputMessagesFilterDocument
 
 from . import zedub
 from ..Config import Config
 from ..sql_helper.globals import addgvar, delgvar, gvarstatus
-from ..helpers.utils import install_pip, _zedtools, _zedutils, _format, parse_pre, reply_id
+from ..helpers.utils import install_pip
 from ..utils import lload_module, inst_done
 
 LOGS = logging.getLogger(__name__)
@@ -26,10 +23,9 @@ if Config.ZELZAL_A:
         if gvarstatus("GRPLOG") and gvarstatus("GRPLOG") != "false":
             delgvar("GRPLOG")
         try:
-            entity = await zedub.get_entity(Config.ZELZAL_A)
-            full_info = await zedub(functions.channels.GetFullChannelRequest(
-                channel=entity
-            ))
+            channel_id, access_hash = map(int, Config.ZELZAL_A.split(":"))
+            entity = InputPeerChannel(channel_id=channel_id, access_hash=access_hash)
+            full_info = await zedub(functions.channels.GetFullChannelRequest(channel=entity))
             zilzal = full_info.full_chat.id
         except Exception as e:
             LOGS.error(f"خطأ أثناء جلب القناة: {e}")
@@ -41,14 +37,15 @@ if Config.ZELZAL_A:
         for module in range(total):
             if plgnm == 21:
                 break
-            plugin_to_install = documentss[module].id
-            plugin_name = documentss[module].file.name
+            plugin = documentss[module]
+            if not plugin or not plugin.file:
+                continue
+            plugin_name = plugin.file.name
             if plugin_name.endswith(".py"):
                 if os.path.exists(f"Tepthon/plugins/{plugin_name}"):
                     continue
                 downloaded_file_name = await zedub.download_media(
-                    await zedub.get_messages(Config.ZELZAL_A, ids=plugin_to_install),
-                    "Tepthon/plugins/",
+                    plugin, "Tepthon/plugins/"
                 )
                 path1 = Path(downloaded_file_name)
                 shortname = path1.stem
