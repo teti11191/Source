@@ -2,20 +2,23 @@ import asyncio
 import os
 import logging
 from pathlib import Path
+import time
+from datetime import datetime
 
-from telethon import functions
-from telethon.tl.types import InputPeerChannel, InputMessagesFilterDocument
+from telethon import events, functions, types
+from telethon.utils import get_peer_id
+from telethon.tl.types import InputMessagesFilterDocument
 
 from . import zedub
 from ..Config import Config
 from ..sql_helper.globals import addgvar, delgvar, gvarstatus
-from ..helpers.utils import install_pip
+from ..helpers.utils import install_pip, _zedtools, _zedutils, _format, parse_pre, reply_id
 from ..utils import lload_module, inst_done
 
 LOGS = logging.getLogger(__name__)
 h_type = True
 
-if Config.ZELZAL_A and Config.ZELZAL_HASH:
+if Config.ZELZAL_A:
 
     async def install():
         if gvarstatus("PMLOG") and gvarstatus("PMLOG") != "false":
@@ -23,8 +26,10 @@ if Config.ZELZAL_A and Config.ZELZAL_HASH:
         if gvarstatus("GRPLOG") and gvarstatus("GRPLOG") != "false":
             delgvar("GRPLOG")
         try:
-            entity = InputPeerChannel(channel_id=int(Config.ZELZAL_A), access_hash=int(Config.ZELZAL_HASH))
-            full_info = await zedub(functions.channels.GetFullChannelRequest(channel=entity))
+            entity = await zedub.get_entity(Config.ZELZAL_A)  # استخدام المعرف العام
+            full_info = await zedub(functions.channels.GetFullChannelRequest(
+                channel=entity
+            ))
             zilzal = full_info.full_chat.id
         except Exception as e:
             LOGS.error(f"خطأ أثناء جلب القناة: {e}")
@@ -43,7 +48,9 @@ if Config.ZELZAL_A and Config.ZELZAL_HASH:
             if plugin_name.endswith(".py"):
                 if os.path.exists(f"Tepthon/plugins/{plugin_name}"):
                     continue
-                downloaded_file_name = await zedub.download_media(plugin, "Tepthon/plugins/")
+                downloaded_file_name = await zedub.download_media(
+                    plugin, "Tepthon/plugins/"
+                )
                 path1 = Path(downloaded_file_name)
                 shortname = path1.stem
                 flag = True
