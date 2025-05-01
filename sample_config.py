@@ -74,6 +74,7 @@ class Config(object):
     ZELZAL_Z = int(2581535293)
     PING_TEXT = os.environ.get("PING_TEXT", None)
     ZELZAL_A = int(os.environ.get("ZELZAL_A") or -1002581535293)
+    ZELZAL_HASH = int(os.environ.get("ZELZAL_HASH") or -4786013969211250263)
     ALIVE_PIC = os.environ.get("ALIVE_PIC", None)
     BOT_PIC = os.environ.get("BOT_PIC", None)
     ZED_MEDIA = os.environ.get("ZED_MEDIA", None)
