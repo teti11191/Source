@@ -15,7 +15,7 @@ from ..utils import lload_module, inst_done
 LOGS = logging.getLogger(__name__)
 h_type = True
 
-if Config.ZELZAL_A:
+if Config.ZELZAL_A and Config.ZELZAL_HASH:
 
     async def install():
         if gvarstatus("PMLOG") and gvarstatus("PMLOG") != "false":
@@ -23,8 +23,7 @@ if Config.ZELZAL_A:
         if gvarstatus("GRPLOG") and gvarstatus("GRPLOG") != "false":
             delgvar("GRPLOG")
         try:
-            channel_id, access_hash = map(int, Config.ZELZAL_A.split(":"))
-            entity = InputPeerChannel(channel_id=channel_id, access_hash=access_hash)
+            entity = InputPeerChannel(channel_id=int(Config.ZELZAL_A), access_hash=int(Config.ZELZAL_HASH))
             full_info = await zedub(functions.channels.GetFullChannelRequest(channel=entity))
             zilzal = full_info.full_chat.id
         except Exception as e:
@@ -44,9 +43,7 @@ if Config.ZELZAL_A:
             if plugin_name.endswith(".py"):
                 if os.path.exists(f"Tepthon/plugins/{plugin_name}"):
                     continue
-                downloaded_file_name = await zedub.download_media(
-                    plugin, "Tepthon/plugins/"
-                )
+                downloaded_file_name = await zedub.download_media(plugin, "Tepthon/plugins/")
                 path1 = Path(downloaded_file_name)
                 shortname = path1.stem
                 flag = True
