@@ -6,6 +6,7 @@ telethon-session-sqlalchemy
 setuptools
 wheel
 aiocsv
+bs4
 aiofiles
 aiohttp==3.9.5
 aiosqlite
@@ -75,6 +76,7 @@ user_agent
 validators
 vcsi
 wand
+wikipedia
 wget
 youtube-search-python==1.4.9
 youtube-search
