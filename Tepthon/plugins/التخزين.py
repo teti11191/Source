@@ -251,20 +251,3 @@ async def set_grplog(event):
         addgvar("GRPLOG", h_type)
         delgvar("GRPLOOG")
         await event.edit("**- تخزين الكـروبات بالفعـل معطـل ✓**")
-
-# ✅ تم إضافة هذا القسم لتخزين رسائل التاكات من المجموعات تلقائيًا
-from telethon import events
-
-@zedub.on(events.NewMessage(incoming=True))
-async def log_mentions_in_groups(event):
-    if event.is_group and event.message.mentioned:
-        try:
-            sender = await event.get_sender()
-            name = sender.first_name or "مستخدم"
-            msg = event.raw_text
-            chat = await event.get_chat()
-            link = f"https://t.me/c/{str(chat.id)[4:]}/{event.id}" if str(chat.id).startswith("-100") else ""
-            formatted = f"#التــاكــات\n⌔┊الكــروب\nالمرسل: {name}\nالرابط: {link}\nالرسالة:\n{msg}"
-            await event.client.send_message("me", formatted)
-        except Exception as e:
-            print("فشل في تخزين التاك:", e)
