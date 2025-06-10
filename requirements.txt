@@ -81,4 +81,4 @@ wget
 youtube-search-python==1.4.9
 youtube-search
 youtube_dl
-yt-dlp
+yt-dlp==2025.06.09
